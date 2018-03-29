@@ -31,6 +31,10 @@ $config = [
                     'label' => 'Grant Access'
                 ]
             ]
+        ],
+        'gridview' => [
+            'class' => '\kartik\grid\Module',
+            'downloadAction' => 'gridview/export/download'
         ]
     ],
     'components' => [
@@ -54,6 +58,14 @@ $config = [
             // 'useFileTransport' to false and configure a transport
             // for the mailer to send real emails.
             'useFileTransport' => true,
+            'transport' => [
+                'class' => 'Swift_SmtpTransport',
+                'host' => 'smtp.gmail.com',
+                'username' => 'yuujikyun@gmail.com',
+                'password' => 'ter0r15t',
+                'port' => '465',
+                'encryption' => 'ssl',
+            ],
         ],
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,
@@ -79,10 +91,7 @@ $config = [
     'as access' => [
         'class' => 'mdm\admin\components\AccessControl',
         'allowActions' => [
-            'site/*',
-            'admin/*',
-            'gii/*',
-            'article/*'
+            'site/*'
         ]
     ],
     'params' => $params

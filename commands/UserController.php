@@ -63,4 +63,15 @@ class UserController extends Controller
             echo "Failed to create Author";
         }
     }
+
+    public function actionEmail()
+    {
+        \Yii::$app->mailer->compose()
+            ->setFrom('yuujikyun@gmail.com')
+            ->setTo('yudhi.guntara@gmail.com')
+            ->setSubject('Message subject')
+            ->setTextBody('Plain text content')
+            ->setHtmlBody('<b>HTML content</b>')
+            ->send();
+    }
 }
