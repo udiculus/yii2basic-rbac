@@ -3,13 +3,13 @@
 namespace app\models;
 
 use Yii;
-use \app\models\base\Country as BaseCountry;
+use \app\models\base\Shipment as BaseShipment;
 use yii\helpers\ArrayHelper;
 
 /**
- * This is the model class for table "tblCountry".
+ * This is the model class for table "tblShipment".
  */
-class Country extends BaseCountry
+class Shipment extends BaseShipment
 {
 
     public function behaviors()

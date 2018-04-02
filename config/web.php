@@ -25,6 +25,12 @@ $config = [
                     'usernameField' => 'username',
                     'searchClass' => 'app\models\UserSearch'
                 ],
+                'batch' => [
+                    'class' => 'schmunk42\giiant\commands\BatchController',
+                    'overwrite' => true,
+                    'modelNamespace' => 'app\\modules\\crud\\models',
+                    'crudTidyOutput' => true,
+                ]
             ],
             'menus' => [
                 'assignment' => [
@@ -86,7 +92,19 @@ $config = [
             'class' => 'yii\rbac\DbManager',
             // uncomment if you want to cache RBAC items hierarchy
             // 'cache' => 'cache',
-        ]
+        ],
+        'i18n' => [
+            'translations' => [
+                '*' => [
+                    'class' => 'yii\i18n\PhpMessageSource',
+                    'basePath' => '@app/messages', // if advanced application, set @frontend/messages
+                    'sourceLanguage' => 'en',
+                    'fileMap' => [
+                        //'main' => 'main.php',
+                    ],
+                ],
+            ],
+        ],
     ],
     'as access' => [
         'class' => 'mdm\admin\components\AccessControl',
@@ -100,11 +118,11 @@ $config = [
 if (YII_ENV_DEV) {
     // configuration adjustments for 'dev' environment
 //    $config['bootstrap'][] = 'debug';
-//    $config['modules']['debug'] = [
-//        'class' => 'yii\debug\Module',
-        // uncomment the following to add your IP if you are not connecting from localhost.
+    $config['modules']['debug'] = [
+        'class' => 'yii\debug\Module',
+//         uncomment the following to add your IP if you are not connecting from localhost.
         //'allowedIPs' => ['127.0.0.1', '::1'],
-//    ];
+    ];
 
     $config['bootstrap'][] = 'gii';
     $config['modules']['gii'] = [

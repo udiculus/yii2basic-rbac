@@ -3,13 +3,13 @@
 namespace app\models;
 
 use Yii;
-use \app\models\base\Country as BaseCountry;
+use \app\models\base\Customer as BaseCustomer;
 use yii\helpers\ArrayHelper;
 
 /**
- * This is the model class for table "tblCountry".
+ * This is the model class for table "tblCustomer".
  */
-class Country extends BaseCountry
+class Customer extends BaseCustomer
 {
 
     public function behaviors()
@@ -30,5 +30,10 @@ class Country extends BaseCountry
                 # custom validation rules
             ]
         );
+    }
+
+    public function getLocation()
+    {
+        return $this->hasOne(Location::className(), ['locationSID' => 'customerLocationSID']);
     }
 }
