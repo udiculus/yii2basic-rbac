@@ -8,8 +8,8 @@
 
 namespace app\controllers;
 
-use Yii;
-use app\models\CustomerSearch;
+use app\models\FieldAlias;
+use app\models\MdlReport;
 use yii\web\Controller;
 
 class ReportWizardController extends Controller
@@ -17,10 +17,18 @@ class ReportWizardController extends Controller
 
     public function actionIndex()
     {
-        $searchModel = new CustomerSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-        return $this->render('step1',[
-            'dataProvider' => $dataProvider
+        $customers = FieldAlias::find()
+            ->where(['type' => 'CUSTOMER'])
+            ->orderBy('id')
+            ->all();
+
+        $modelReport = new MdlReport();
+        $className = \app\models\Customer::className();
+        $classInstance = new $className;
+        return $this->render('step1', [
+            'customer' => $customers,
+            'model' => $modelReport,
+//            'relations' => $classInstance->getRelationData()
         ]);
     }
 

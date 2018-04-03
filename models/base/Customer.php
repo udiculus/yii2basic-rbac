@@ -58,7 +58,8 @@ abstract class Customer extends \yii\db\ActiveRecord
             'customerAddress3' => 'Customer Address3',
             'customerAddressCountrySID' => 'Customer Address Country Sid',
             'customerLocationSID' => 'Customer Location Sid',
-            'location.locationName' => 'Location Name'
+            'location.locationName' => 'Customer Location Name',
+            'country.countryName' => 'Customer Country Name'
         ];
     }
 
