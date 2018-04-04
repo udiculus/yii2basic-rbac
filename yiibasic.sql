@@ -1,11 +1,11 @@
 USE [master]
 GO
 
-/****** Object:  Database [yii2basic]    Script Date: 03/04/2018 16:41:17 ******/
+/****** Object:  Database [yii2basic]    Script Date: 04/04/2018 16:57:56 ******/
 DROP DATABASE [yii2basic]
 GO
 
-/****** Object:  Database [yii2basic]    Script Date: 03/04/2018 16:41:17 ******/
+/****** Object:  Database [yii2basic]    Script Date: 04/04/2018 16:57:56 ******/
 CREATE DATABASE [yii2basic]
  CONTAINMENT = NONE
  ON  PRIMARY 
