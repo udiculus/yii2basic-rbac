@@ -58,7 +58,7 @@ abstract class MdlReport extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'select', 'from', 'relation', 'filter', 'order'], 'string']
+            [['name', 'select', 'from', 'relation', 'filter', 'order', 'operator'], 'string']
         ];
     }
 
@@ -75,6 +75,7 @@ abstract class MdlReport extends \yii\db\ActiveRecord
             'relation' => 'Relation',
             'filter' => 'Filter',
             'order' => 'Order',
+            'operator' => 'Operator',
             'created_at' => 'Created At',
             'created_by' => 'Created By',
             'updated_at' => 'Updated At',

@@ -23,7 +23,8 @@ class AppAsset extends AssetBundle
         'css/site.css',
     ];
     public $js = [
-        'js/html5sortable.min.js'
+        'js/html5sortable.min.js',
+        'js/tmpl.min.js'
     ];
     public $depends = [
         'yii\web\YiiAsset',
