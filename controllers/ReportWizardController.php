@@ -8,15 +8,33 @@
 
 namespace app\controllers;
 
+use Yii;
 use app\models\FieldAlias;
-use app\models\MdlReport;
+use app\models\form\ReportWizardForm;
+use app\models\ReportTemplate;
+use yii\bootstrap\ActiveForm;
 use yii\web\Controller;
+use yii\web\Response;
 
 class ReportWizardController extends Controller
 {
 
     public function actionIndex()
     {
+
+        $model = new ReportTemplate();
+        // validate any AJAX requests fired off by the form
+        if (Yii::$app->request->isAjax) {
+            $model->attributes = Yii::$app->request->post();
+            if ($model->validate()){
+                echo "good";
+            } else
+                print_r($model->errors);
+            print_r($model->validate());
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return ActiveForm::validate($model);
+        }
+
         $customer = FieldAlias::find()
             ->where(['type' => 'CUSTOMER'])
             ->orderBy('id')
@@ -27,7 +45,7 @@ class ReportWizardController extends Controller
             ->orderBy('id')
             ->all();
 
-        $permanentClause = FieldAlias::find()
+        $advancedFilter = FieldAlias::find()
             ->where(['use_as_filter' => 1])
             ->orderBy('id')
             ->all();
@@ -37,15 +55,21 @@ class ReportWizardController extends Controller
             ->orderBy('id')
             ->all();
 
-        $modelReport = new MdlReport();
-        $className = \app\models\Customer::className();
-        $classInstance = new $className;
+        $clientFilter = FieldAlias::find()
+            ->where(['use_as_client_filter' => 1])
+            ->orderBy('id')
+            ->all();
+
+        $reportTemplate = new ReportWizardForm();
+//        $className = \app\models\Customer::className();
+//        $classInstance = new $className;
         return $this->render('step1', [
             'customer' => $customer,
             'shipment' => $shipment,
-            'permanentClause' => $permanentClause,
+            'advancedFilter' => $advancedFilter,
             'sortingOrder' => $sortingOrder,
-            'model' => $modelReport,
+            'clientFilter' => $clientFilter,
+            'model' => $reportTemplate,
 //            'relations' => $classInstance->getRelationData()
         ]);
     }
