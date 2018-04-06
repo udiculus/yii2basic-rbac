@@ -12,29 +12,24 @@ use Yii;
 use app\models\FieldAlias;
 use app\models\form\ReportWizardForm;
 use app\models\ReportTemplate;
-use yii\bootstrap\ActiveForm;
+use app\models\search\ReportTemplateSearch;
 use yii\web\Controller;
 use yii\web\Response;
 
-class ReportWizardController extends Controller
+class ReportController extends Controller
 {
 
     public function actionIndex()
     {
+        $report = ReportTemplate::find()->all();
 
-        $model = new ReportTemplate();
-        // validate any AJAX requests fired off by the form
-        if (Yii::$app->request->isAjax) {
-            $model->attributes = Yii::$app->request->post();
-            if ($model->validate()){
-                echo "good";
-            } else
-                print_r($model->errors);
-            print_r($model->validate());
-            Yii::$app->response->format = Response::FORMAT_JSON;
-            return ActiveForm::validate($model);
-        }
+        return $this->render('index', [
+            'report' => $report
+        ]);
+    }
 
+    public function actionNew()
+    {
         $customer = FieldAlias::find()
             ->where(['type' => 'CUSTOMER'])
             ->orderBy('id')
@@ -72,6 +67,27 @@ class ReportWizardController extends Controller
             'model' => $reportTemplate,
 //            'relations' => $classInstance->getRelationData()
         ]);
+    }
+
+    public function actionSave()
+    {
+        $model = new ReportTemplate();
+        // validate any AJAX requests fired off by the form
+        if (Yii::$app->request->isAjax) {
+            $model->attributes = Yii::$app->request->post();
+            if ($model->validate()) {
+                $model->field_order = json_encode($model->field_order, JSON_NUMERIC_CHECK);
+                $model->filter = json_encode($model->filter, JSON_NUMERIC_CHECK);
+                $model->sorting_order = json_encode($model->sorting_order, JSON_NUMERIC_CHECK);
+                $model->client_filter = json_encode($model->client_filter, JSON_NUMERIC_CHECK);
+                print_r($model->attributes);
+                $model->save(false);
+            } else {
+                print_r($model->errors);
+            }
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return $model->errors;
+        }
     }
 
 }

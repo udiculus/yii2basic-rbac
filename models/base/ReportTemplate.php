@@ -28,8 +28,6 @@ use yii\behaviors\TimestampBehavior;
 abstract class ReportTemplate extends \yii\db\ActiveRecord
 {
 
-
-
     /**
      * @inheritdoc
      */
@@ -59,9 +57,10 @@ abstract class ReportTemplate extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['report_name', 'report_description', 'field_order', 'filter', 'sorting_order', 'client_filter'], 'string'],
+            [['report_name', 'report_description'], 'string'],
             [['report_name', 'report_description'], 'required'],
-            [['limit_per_page'], 'integer']
+            [['limit_per_page'], 'integer'],
+            [['field_order', 'filter', 'sorting_order', 'client_filter'], 'checkIsArray']
         ];
     }
 
@@ -86,7 +85,14 @@ abstract class ReportTemplate extends \yii\db\ActiveRecord
         ];
     }
 
-
-
+    public function checkIsArray($attribute, $params)
+    {
+        $value = $this->getAttribute($attribute);
+        if (empty($value)) {
+            $this->addError($attribute, "The " . $this->getAttributeLabel($attribute) . " cannot be empty");
+        } elseif (!is_array($value)) {
+            $this->addError($attribute, "The " . $this->getAttributeLabel($attribute) . " must be an array.");
+        }
+    }
 
 }

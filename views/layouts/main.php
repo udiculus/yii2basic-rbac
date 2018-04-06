@@ -42,6 +42,7 @@ AppAsset::register($this);
             ['label' => 'About', 'url' => ['/site/about']],
             ['label' => 'Contact', 'url' => ['/site/contact']],
             ['label' => 'Country', 'url' => ['/country']],
+            ['label' => 'Report', 'url' => ['/report']],
             ['label' => 'Article', 'url' => ['/article']],
             Yii::$app->user->isGuest == false ? (
                     ['label' => 'Admin', 'url' => ['/admin']]

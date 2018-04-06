@@ -13,7 +13,8 @@ $form = ActiveForm::begin([
 ]);
 ?>
 <div id="step_select_column">
-    <h3 style="margin-bottom: 15px;">Step 1: Select Column</h3>
+    <div class="page-title" style="margin-bottom: 15px;">Step 1: Select Column</div>
+    <div class="clearfix"></div>
     <?php
     $customerDetails = [
         [
@@ -78,7 +79,8 @@ $form = ActiveForm::begin([
     </div>
 </div>
 <div id="step_field_order" class="hide">
-    <h3 style="margin-bottom: 15px;">Step 2: Field Order</h3>
+    <div class="page-title" style="margin-bottom: 15px;">Step 2: Field Order</div>
+    <div class="clearfix"></div>
 
     <ol class="sortable" id="field_order">
     </ol>
@@ -93,7 +95,8 @@ $form = ActiveForm::begin([
     </div>
 </div>
 <div id="step_report_criteria" class="hide">
-    <h3 style="margin-bottom: 15px;">Step 3: Report Criteria</h3>
+    <div class="page-title" style="margin-bottom: 15px;">Step 3: Report Criteria</div>
+    <div class="clearfix"></div>
 
     <div class="panel-group" role="tablist" aria-multiselectable="true">
         <div class="panel panel-default">
@@ -299,7 +302,8 @@ $form = ActiveForm::begin([
     </div>
 </div>
 <div id="step_report_info" class="hide">
-    <h3 style="margin-bottom: 15px;">Step 4: Save Report Template</h3>
+    <div class="page-title" style="margin-bottom: 15px;">Step 4: Save Report Template</div>
+    <div class="clearfix"></div>
 
     <div class="panel-group" role="tablist" aria-multiselectable="true">
         <div class="panel panel-default">
@@ -442,7 +446,7 @@ $(document).ready(function(){
         console.log(post_json);
         
         $.ajax({
-            url: 'report-wizard',
+            url: '/report/save',
             data: post_json,
             type: 'POST',
             dataType: 'JSON',
@@ -457,5 +461,4 @@ $this->registerJs($script, View::POS_END);
 ?>
 <script type="text/x-tmpl" id="tmpl-selected-field">
     <li class="">{%= o.label %} <input type="hidden" class="selected-field" value="{%= o.id %}"/></li>
-
 </script>
