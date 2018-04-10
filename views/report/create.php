@@ -6,15 +6,20 @@ use yii\bootstrap\ActiveForm;
 use yii\bootstrap\Html;
 use yii\web\View;
 
+$this->title = 'New Report Wizard';
+$this->params['breadcrumbs'][] = ['label' => 'Template Reports', 'url' => ['/report']];
+$this->params['breadcrumbs'][] = $this->title;
+
 ?>
 <?php
 $form = ActiveForm::begin([
     'id' => 'form_select_column'
 ]);
 ?>
-<div id="step_select_column">
-    <div class="page-title" style="margin-bottom: 15px;">Step 1: Select Column</div>
+<div id="step_select_column" class="active">
+    <div class="page-title">Step 1: Select Column</div>
     <div class="clearfix"></div>
+    <div class="page-desc">Select the columns to include in your report.</div>
     <?php
     $customerDetails = [
         [
@@ -68,6 +73,7 @@ $form = ActiveForm::begin([
     }
 
     ?>
+    <div class="row"><div class="col-md-12"><div class="error-step hide">You must atleast pick two columns to proceed</div></div> </div>
     <div class="form-group">
         <?php
         echo Button::widget([
@@ -79,8 +85,9 @@ $form = ActiveForm::begin([
     </div>
 </div>
 <div id="step_field_order" class="hide">
-    <div class="page-title" style="margin-bottom: 15px;">Step 2: Field Order</div>
+    <div class="page-title">Step 2: Field Order</div>
     <div class="clearfix"></div>
+    <div class="page-desc">Order report columns in the way you wish to view them.</div>
 
     <ol class="sortable" id="field_order">
     </ol>
@@ -95,8 +102,9 @@ $form = ActiveForm::begin([
     </div>
 </div>
 <div id="step_report_criteria" class="hide">
-    <div class="page-title" style="margin-bottom: 15px;">Step 3: Report Criteria</div>
+    <div class="page-title">Step 3: Report Criteria</div>
     <div class="clearfix"></div>
+    <div class="page-desc">Select the criteria to determine which records to display.</div>
 
     <div class="panel-group" role="tablist" aria-multiselectable="true">
         <div class="panel panel-default">
@@ -302,8 +310,9 @@ $form = ActiveForm::begin([
     </div>
 </div>
 <div id="step_report_info" class="hide">
-    <div class="page-title" style="margin-bottom: 15px;">Step 4: Save Report Template</div>
+    <div class="page-title">Step 4: Save Report Template</div>
     <div class="clearfix"></div>
+    <div class="page-desc">Put the name of your report and information.</div>
 
     <div class="panel-group" role="tablist" aria-multiselectable="true">
         <div class="panel panel-default">
@@ -322,14 +331,14 @@ $form = ActiveForm::begin([
                         <div class="col-md-3"><label class="single-lable" for="ReportWizardForm[report_name]">Report
                                 Name</label></div>
                         <div class="col-md-5">
-                            <?= $form->field($model, 'report_name', ['enableLabel' => false])->textInput(); ?>
+                            <?= $form->field($model, 'report_name', ['enableLabel' => false])->textInput(['class' => 'form-control required']); ?>
                         </div>
                     </div>
                     <div class="row form-group">
                         <div class="col-md-3"><label class="single-lable" for="ReportWizardForm[report_description]">Report
                                 Description</label></div>
                         <div class="col-md-5">
-                            <?= $form->field($model, 'report_description', ['enableLabel' => false])->textarea(['rows' => '6']) ?>
+                            <?= $form->field($model, 'report_description', ['enableLabel' => false])->textarea(['rows' => '6', 'class' => 'form-control required']) ?>
                         </div>
                     </div>
                 </div>
@@ -349,111 +358,177 @@ $form = ActiveForm::begin([
 <?php ActiveForm::end(); ?>
 <?php
 $script = <<< JS
-$(document).ready(function(){
-    $("#submit_select_column").bind("click", function(e) {
-      e.preventDefault();
-      var x = $("#step_select_column").find('input[type=checkbox]:checked');
-      $.each(x, function(key, val) {
-            // $("#field_order").append("<li>" + $(val).attr('data-label') + "</li>");
-            $("#field_order").append(tmpl('tmpl-selected-field', {label: $(val).attr('data-label'), id: $(val).val()}));
-      });
-      sortable('.sortable');
-      $("#step_select_column").addClass("hide");
-      $("#step_field_order").removeClass("hide");
-    });
-    $("#submit_field_order").bind("click", function(e) {
-      e.preventDefault();
-      var x = $("#step_field_order").find('input[type=hidden].selected-field');
-      var or = new Array();
-      $.each(x, function(key, val){
-        or.push(parseInt($(val).val()));
-      });
-      $("#step_field_order").addClass("hide");
-      $("#step_report_criteria").removeClass("hide");
-      
-      console.log(or);
-    });
-    
-    $("#submit_report_criteria").bind("click", function(e){
+$(document).ready(function () {
+    $("#submit_select_column").bind("click", function (e) {
         e.preventDefault();
-                
-        $("#step_report_criteria").addClass("hide");
-        $("#step_report_info").removeClass("hide");
+        var elm = $("#step_select_column");
+        var error_string = "";
+
+        // valid
+        var x = $("#step_select_column").find('input[type=checkbox]:checked');
+        if (x.length > 1) {
+            $.each(x, function (key, val) {
+                $("#field_order").append(tmpl('tmpl-selected-field', {label: $(val).attr('data-label'), id: $(val).val()}));
+            });
+            sortable('.sortable');
+            $("#step_select_column").addClass("hide").removeClass('active').find(".error-step").addClass("hide");
+            $("#step_field_order").removeClass("hide").addClass('active');
+        } else {
+            $("#step_select_column").find(".error-step").removeClass('hide');
+        }
     });
-    
-    $("#submit_report_template").bind("click", function(e) {
+    $("#submit_field_order").bind("click", function (e) {
         e.preventDefault();
+        var x = $("#step_field_order").find('input[type=hidden].selected-field');
+        var or = new Array();
+        $.each(x, function (key, val) {
+            or.push(parseInt($(val).val()));
+        });
+        $("#step_field_order").addClass("hide").removeClass('active');
+        $("#step_report_criteria").removeClass("hide").addClass('active');
+
+        console.log(or);
+    });
+
+    $("#submit_report_criteria").bind("click", function (e) {
+        e.preventDefault();
+        $("#step_report_criteria").find('.input-error').remove();
+         // populate advanced filter
+        var adv_filter = new Array();
+        $.each($(".adv-filter"), function (key, elm) {
+            var filter_selected = $(elm).find("select[name='ReportWizardForm[filter_field]']");
+            var filter_value = $(elm).find("input[name='ReportWizardForm[filter_value]']");
+            var filter_operator = $(elm).find("select[name='ReportWizardForm[filter_operator]']");
+            if (filter_selected.val()) {
+                if (filter_value.val() != "") {
+                    var json = {
+                        "id": filter_selected.val(),
+                        "op": filter_operator.val(),
+                        "value": filter_value.val()
+                    };
+                    adv_filter.push(json);
+                } else {
+                    filter_selected.parent().append("<div class='input-error'>The " + filter_selected.find("option:selected").text() + " value cannot be empty</div>");
+                }
+            }
+        });
         
+        // populate client filter
+        var client_filter = new Array();
+        $.each($(".client-filter"), function (key, elm) {
+            var client_filter_field = $(elm).find("select[name='ReportWizardForm[client_filter_field]']");
+            var client_filter_operator = $(elm).find("input[name='ReportWizardForm[client_filter_operator]']");
+            if (client_filter_field.val()) {
+                if (client_filter_operator.val() != "") {
+                    var json = {
+                        "id": client_filter_field.val(),
+                        "op": client_filter_operator.val()
+                    };
+                    client_filter.push(json);
+                } else {
+                    client_filter_field.parent().append("<div class='input-error'>The " + client_filter_field.find("option:selected").text() + " value cannot be empty</div>");
+                }
+            }
+        });
+        console.log(client_filter);
+        
+        if($("#step_report_criteria").find('.input-error').length > 0){
+            
+        } else {
+            $("#step_report_criteria").addClass("hide").removeClass('active');
+            $("#step_report_info").removeClass("hide").addClass('active');
+        }
+    });
+
+    $("#submit_report_template").bind("click", function (e) {
+        e.preventDefault();
+        $("#step_report_info").find('.input-error').remove();
         // populate advanced filter
         var adv_filter = new Array();
-        $.each($(".adv-filter"), function(key, elm) {
-            if ($(elm).find("select[name='ReportWizardForm[filter_field]']").val()){
+        $.each($(".adv-filter"), function (key, elm) {
+            if ($(elm).find("select[name='ReportWizardForm[filter_field]']").val()) {
                 var json = {
-                    "id" : $(elm).find("select[name='ReportWizardForm[filter_field]']").val(),
-                    "op" : $(elm).find("select[name='ReportWizardForm[filter_operator]']").val(),
-                    "value" : $(elm).find("input[name='ReportWizardForm[filter_value]']").val()
+                    "id": $(elm).find("select[name='ReportWizardForm[filter_field]']").val(),
+                    "op": $(elm).find("select[name='ReportWizardForm[filter_operator]']").val(),
+                    "value": $(elm).find("input[name='ReportWizardForm[filter_value]']").val()
                 };
                 adv_filter.push(json);
-            } 
+            }
         });
         console.log(adv_filter);
-        
+
         // populate limit row count
         var limit_row = $("#limit_row").val();
-        
-        // populate sorting order
+
+        /// populate sorting order
         var sorting_order = new Array();
-        $.each($(".sorting-order"), function(key, elm){
-            if ($(elm).find("select[name='ReportWizardForm[order_field]']").val()) {
+        $.each($(".sorting-order"), function (key, elm) {
+            var order_field = $(elm).find("select[name='ReportWizardForm[order_field]']");
+            var order_type = $(elm).find("select[name='ReportWizardForm[order_type]']");
+            if (order_field.val()) {
                 var json = {
-                    "id" : $(elm).find("select[name='ReportWizardForm[order_field]']").val(),
-                    "type" : $(elm).find("select[name='ReportWizardForm[order_type]']").val()
+                    "id": order_field.val(),
+                    "type": order_type.val()
                 };
                 sorting_order.push(json);
             }
         });
         console.log(sorting_order);
-        
+
         // populate client filter
         var client_filter = new Array();
-        $.each($(".client-filter"), function(key, elm){
+        $.each($(".client-filter"), function (key, elm) {
             if ($(elm).find("select[name='ReportWizardForm[client_filter_field]']").val()) {
                 var json = {
-                    "id" : $(elm).find("select[name='ReportWizardForm[client_filter_field]']").val(),
-                    "op" : $(elm).find("input[name='ReportWizardForm[client_filter_operator]']").val()
+                    "id": $(elm).find("select[name='ReportWizardForm[client_filter_field]']").val(),
+                    "op": $(elm).find("input[name='ReportWizardForm[client_filter_operator]']").val()
                 };
                 client_filter.push(json);
-            }  
+            }
         });
         console.log(client_filter);
-        
+
         // populate order field
         var elm = $("#step_field_order").find('input[type=hidden].selected-field');
         var field_order = new Array();
-        $.each(elm, function(key, val){
+        $.each(elm, function (key, val) {
             field_order.push(parseInt($(val).val()));
         });
         
-        var post_json = {
-            report_name: $("input[name='ReportWizardForm[report_name]']").val(),
-            report_description: $("textarea[name='ReportWizardForm[report_description]']").val(),
-            field_order: field_order,
-            limit_per_page: limit_row,
-            filter: adv_filter,
-            client_filter: client_filter,
-            sorting_order: sorting_order
-        };
-        console.log(post_json);
-        
-        $.ajax({
-            url: '/report/save',
-            data: post_json,
-            type: 'POST',
-            dataType: 'JSON',
-            success: function(data) {
-                console.log(data);
-            }
+        $.each($("#step_report_info").find('input.required, select.required, textarea.required'), function (key, elm) {
+           if (!$(elm).val()) {
+               $(elm).parent().append('<span class="input-error">This field is required</span>');
+           }
         });
+        
+        if($("#step_report_info").find('.input-error').length > 0){
+            
+        } else {
+            var post_json = {
+                report_name: $("input[name='ReportWizardForm[report_name]']").val(),
+                report_description: $("textarea[name='ReportWizardForm[report_description]']").val(),
+                field_order: field_order,
+                limit_per_page: limit_row,
+                filter: adv_filter,
+                client_filter: client_filter,
+                sorting_order: sorting_order
+            };
+            console.log(post_json);
+    
+            $.ajax({
+                url: '/report/save',
+                data: post_json,
+                type: 'POST',
+                dataType: 'JSON',
+                success: function (data) {
+                    if (data.errorcode > 0) {
+                        alert(data.message);
+                    } else {
+                        window.location.href = '/report';
+                    }
+                }
+            });
+        }
     });
 });
 JS;

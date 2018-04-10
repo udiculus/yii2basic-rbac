@@ -172,7 +172,7 @@ span.filter-label {
   margin-left: 20px;
 }
 
-.page-title{
+.page-title {
   display: inline-block;
   font-size: 24px;
   line-height: 34px;
@@ -180,20 +180,32 @@ span.filter-label {
   font-weight: bold;
 }
 
-.page-button{
+.page-button {
   display: inline-block;
   margin-left: 10px;
 }
 
-.template-reports{
-  margin:0;
-  padding:0;
+.template-reports {
+  margin: 0;
+  padding: 0;
   list-style: none;
   padding-top: 10px;
-  li{
+  li {
     margin-bottom: 5px;
     padding-left: 10px;
   }
 }
+.page-desc {
+  margin-bottom: 15px;
+}
+.error-step {
+  margin-bottom: 15px;
+  color: red;
+}
+
+.input-error{
+  color: red;
+}
+
 
 

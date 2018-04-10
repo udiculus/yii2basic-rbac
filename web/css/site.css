@@ -157,4 +157,14 @@ span.filter-label {
     margin-bottom: 5px;
     padding-left: 10px; }
 
+.page-desc {
+  margin-bottom: 15px; }
+
+.error-step {
+  margin-bottom: 15px;
+  color: red; }
+
+.input-error {
+  color: red; }
+
 /*# sourceMappingURL=site.css.map */

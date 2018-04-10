@@ -86,7 +86,9 @@ $config = [
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
-//            'rules' => [],
+            'rules' => [
+                '<controller:\w+>/<action:\w+>/<id:\d+>' => '<controller>/<action>',
+            ],
         ],
         'authManager' => [
             'class' => 'yii\rbac\DbManager',
