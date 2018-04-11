@@ -7,7 +7,7 @@ use yii\bootstrap\Html;
 use yii\web\View;
 
 $this->title = 'New Report Wizard';
-$this->params['breadcrumbs'][] = ['label' => 'Template Reports', 'url' => ['/report']];
+$this->params['breadcrumbs'][] = ['label' => 'Report', 'url' => ['/report']];
 $this->params['breadcrumbs'][] = $this->title;
 
 ?>

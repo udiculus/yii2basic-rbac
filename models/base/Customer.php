@@ -29,7 +29,7 @@ abstract class Customer extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'tblCustomer';
+        return 'customer';
     }
 
     /**

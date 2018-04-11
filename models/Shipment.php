@@ -31,4 +31,9 @@ class Shipment extends BaseShipment
             ]
         );
     }
+
+    public function getCustomer()
+    {
+        return $this->hasOne(Customer::className(), ['customerSID' => 'ShipmentCustomerSID']);
+    }
 }

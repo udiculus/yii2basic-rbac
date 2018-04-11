@@ -7,7 +7,7 @@ use kartik\grid\GridView;
 /* @var $searchModel app\models\ArticleSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = 'Template Report';
+$this->title = 'Report';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="article-index">

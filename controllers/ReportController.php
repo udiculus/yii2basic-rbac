@@ -9,11 +9,13 @@
 namespace app\controllers;
 
 use app\models\JSONResponse;
+use app\models\Shipment;
 use Yii;
 use app\models\FieldAlias;
 use app\models\form\ReportWizardForm;
 use app\models\ReportTemplate;
 use app\models\search\ReportTemplateSearch;
+use yii\data\ActiveDataProvider;
 use yii\web\Controller;
 use yii\web\Response;
 
@@ -38,27 +40,111 @@ class ReportController extends Controller
         foreach ($field_alias_res as $rows):
             $field_alias['k' . $rows['id']] = $rows;
         endforeach;
+        // 2 => k2
 
-        echo $selectedField = $this->translateSelect($report->field_order, $field_alias);
+        $selectedField = $this->translateSelect($report->field_order, $field_alias);
+        $filteredField = $this->translateFilter($report->filter, $field_alias);
+        $orderedField = $this->translateOrder($report->sorting_order, $field_alias);
+
+        print_r($orderedField);
+
+        exit(0);
+
+        $query = Shipment::find()
+            ->select($selectedField)
+            ->joinWith('customer')
+            ->orderBy($orderedField);
+
+        foreach ($filteredField as $ff_temp):
+            $query->andWhere($ff_temp);
+        endforeach;
+
+//        if ($report->limit_per_page)
+//            $query = $query->limit($report->limit_per_page);
+
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => [
+                'pageSize' => $report->limit_per_page ? $report->limit_per_page : null,
+            ],
+        ]);
 
         return $this->render('view', [
-            'report' => $report
+            'report' => $report,
+            'gridColumn' => $selectedField,
+            'dataProvider' => $dataProvider
         ]);
     }
 
     public function translateSelect($selected, $fields)
     {
         $selected_arr = json_decode($selected);
-        $selected_str = "";
-        $x = 1;
+        $translated_column = array();
         foreach ($selected_arr as $id):
-            $selected_str .= $fields['k'.$id]['field_name'];
-            if ($x < count($selected_arr))
-                $selected_str .= ", ";
-            $x++;
+            $translated_column[] = $fields['k' . $id]['field_name'];
         endforeach;
 
-        return $selected_str;
+        return $translated_column;
+    }
+
+    public function translateFilter($filtered, $fields)
+    {
+        $filtered_arr = json_decode($filtered);
+        $translated_filter = array();
+        foreach ($filtered_arr as $filter_temp):
+            $translated_filter[] = $this->translateWhere($fields['k' . $filter_temp->id]['field_name'], $filter_temp->op, $filter_temp->value);
+        endforeach;
+
+        return $translated_filter;
+    }
+
+    public function translateOrder($ordered, $fields)
+    {
+        $ordered_arr = json_decode($ordered);
+        $translated_order = array();
+        foreach ($ordered_arr as $order_temp):
+            $translated_order[] = [$fields['k' . $order_temp->id]['field_name'], ($order_temp->type == "desc" ? SORT_DESC : SORT_ASC)];
+        endforeach;
+
+        return $translated_order;
+    }
+
+    public function translateWhere($field, $op, $value)
+    {
+        switch ($op) {
+            case "eq":
+                return ['=', $field, $value];
+                break;
+            case "nq":
+                return ['!=', $field, $value];
+                break;
+            case "lt":
+                return ['<', $field, $value];
+                break;
+            case "gt":
+                return ['>', $field, $value];
+                break;
+            case "le":
+                return ['<=', $field, $value];
+                break;
+            case "ge":
+                return ['>=', $field, $value];
+                break;
+            case "sw":
+                return ['LIKE', $field, $value . "%"];
+                break;
+            case "ns":
+                return ['LIKE', $field, "%" . $value];
+                break;
+            case "in":
+                return ['IN', $field, $value];
+                break;
+            case "ex":
+                return ['NOT IN', $field, $value];
+                break;
+            default:
+                return ['=', $field, $value];
+        }
     }
 
     public function actionNew()
