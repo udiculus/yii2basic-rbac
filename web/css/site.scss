@@ -195,21 +195,57 @@ span.filter-label {
     padding-left: 10px;
   }
 }
+
 .page-desc {
   margin-bottom: 15px;
 }
+
 .error-step {
   margin-bottom: 15px;
   color: red;
 }
 
-.input-error{
+.input-error {
   color: red;
 }
 
-.panel-grey{
+.panel-grey {
   border-color: #dedede;
+  margin-bottom: 0;
 }
 
+.summary {
+  float: right;
+  margin-top: 20px;
+  line-height: 34px;
+}
+
+.btn-group-report {
+  margin-bottom: 20px;
+  margin-right: 15px;
+  &.right {
+    float: right;
+    margin-right: 0px;
+  }
+}
+
+.modal {
+  text-align: center;
+}
+
+@media screen and (min-width: 768px) {
+  .modal:before {
+    display: inline-block;
+    vertical-align: middle;
+    content: " ";
+    height: 100%;
+  }
+}
+
+.modal-dialog {
+  display: inline-block;
+  text-align: left;
+  vertical-align: middle;
+}
 
 

@@ -1,18 +1,19 @@
 <?php
-
-namespace app\models\search;
-
-use app\models\ReportTemplate;
-use yii\base\Model;
-use yii\data\ActiveDataProvider;
-
 /**
  * Created by PhpStorm.
  * User: Yudhi_G293
- * Date: 06/04/2018
- * Time: 10:41
+ * Date: 12/04/2018
+ * Time: 15:50
  */
-class ReportTemplateSearch extends ReportTemplate
+
+namespace app\models\search;
+
+
+use app\models\Shipment;
+use yii\base\Model;
+use yii\data\ActiveDataProvider;
+
+class ShipmentReportSearch extends Shipment
 {
     /**
      * {@inheritdoc}
@@ -42,7 +43,7 @@ class ReportTemplateSearch extends ReportTemplate
      */
     public function search($params)
     {
-        $query = ReportTemplate::find()->select(['id', 'report_name', 'report_description']);
+        $query = Shipment::find();
 
         // add conditions that should always apply here
 

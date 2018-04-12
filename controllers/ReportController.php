@@ -46,10 +46,6 @@ class ReportController extends Controller
         $filteredField = $this->translateFilter($report->filter, $field_alias);
         $orderedField = $this->translateOrder($report->sorting_order, $field_alias);
 
-        print_r($orderedField);
-
-        exit(0);
-
         $query = Shipment::find()
             ->select($selectedField)
             ->joinWith('customer')
@@ -59,8 +55,14 @@ class ReportController extends Controller
             $query->andWhere($ff_temp);
         endforeach;
 
-//        if ($report->limit_per_page)
-//            $query = $query->limit($report->limit_per_page);
+        $params = Yii::$app->request->queryParams;
+        $applyClientFilter = $this->translateAppliedClientFilter($report->client_filter, $params, $field_alias);
+
+        print_r($applyClientFilter);
+
+        foreach ($applyClientFilter as $cf_temp):
+            $query->andWhere($cf_temp);
+        endforeach;
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -74,6 +76,24 @@ class ReportController extends Controller
             'gridColumn' => $selectedField,
             'dataProvider' => $dataProvider
         ]);
+    }
+
+    public function translateAppliedClientFilter($client_filter, $params, $fields)
+    {
+        $client_filter_alias = array();
+        $client_filter_arr = json_decode($client_filter);
+        foreach ($client_filter_arr as $rows) :
+            $client_filter_alias['c' . $rows->id] = $rows->op;
+        endforeach;
+
+        $translated_filter = array();
+        foreach ($params as $v => $a):
+            if (array_key_exists('k'.$v, $fields)) {
+                $translated_filter[] = [$client_filter_alias['c'.$v],$fields['k' . $v]['field_name'], $a];
+            }
+        endforeach;
+
+        return $translated_filter;
     }
 
     public function translateSelect($selected, $fields)
@@ -103,7 +123,7 @@ class ReportController extends Controller
         $ordered_arr = json_decode($ordered);
         $translated_order = array();
         foreach ($ordered_arr as $order_temp):
-            $translated_order[] = [$fields['k' . $order_temp->id]['field_name'], ($order_temp->type == "desc" ? SORT_DESC : SORT_ASC)];
+            $translated_order[$fields['k' . $order_temp->id]['field_name']] = ($order_temp->type == "desc" ? SORT_DESC : SORT_ASC);
         endforeach;
 
         return $translated_order;
