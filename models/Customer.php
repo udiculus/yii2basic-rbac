@@ -28,7 +28,6 @@ class Customer extends BaseCustomer
         return ArrayHelper::merge(
             parent::rules(),
             [
-                # custom validation rules
             ]
         );
     }
@@ -41,6 +40,11 @@ class Customer extends BaseCustomer
     public function getCountry()
     {
         return $this->hasOne(Country::className(), ['countrySID' => 'customerAddressCountrySID']);
+    }
+
+    public function getShipment()
+    {
+        return $this->hasMany(Shipment::className(), ['ShipmentCustomerSID' => 'customerSID']);
     }
 
     public function attributeLabels()

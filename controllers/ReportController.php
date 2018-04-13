@@ -40,15 +40,14 @@ class ReportController extends Controller
         foreach ($field_alias_res as $rows):
             $field_alias['k' . $rows['id']] = $rows;
         endforeach;
-        // 2 => k2
 
         $selectedField = $this->translateSelect($report->field_order, $field_alias);
         $filteredField = $this->translateFilter($report->filter, $field_alias);
         $orderedField = $this->translateOrder($report->sorting_order, $field_alias);
+        $clientFilter = $this->translateClientFilter($report->client_filter, $field_alias);
 
         $query = Shipment::find()
-            ->select($selectedField)
-            ->joinWith('customer')
+            ->innerJoinWith('customer')
             ->orderBy($orderedField);
 
         foreach ($filteredField as $ff_temp):
@@ -57,8 +56,6 @@ class ReportController extends Controller
 
         $params = Yii::$app->request->queryParams;
         $applyClientFilter = $this->translateAppliedClientFilter($report->client_filter, $params, $field_alias);
-
-        print_r($applyClientFilter);
 
         foreach ($applyClientFilter as $cf_temp):
             $query->andWhere($cf_temp);
@@ -73,9 +70,26 @@ class ReportController extends Controller
 
         return $this->render('view', [
             'report' => $report,
+            'clientFilter' => $clientFilter,
             'gridColumn' => $selectedField,
             'dataProvider' => $dataProvider
         ]);
+    }
+
+    public function translateClientFilter($client_filter, $fields)
+    {
+        $client_filter_arr = json_decode($client_filter);
+        $translated_filter = array();
+        foreach ($client_filter_arr as $rows) :
+            $translated_filter[] = array(
+                'id' => $rows->id,
+                'label' => $fields['k' . $rows->id]['label_name'],
+                'name' => $fields['k' . $rows->id]['field_name'],
+                'op' => $rows->op
+            );
+        endforeach;
+
+        return $translated_filter;
     }
 
     public function translateAppliedClientFilter($client_filter, $params, $fields)
@@ -88,8 +102,8 @@ class ReportController extends Controller
 
         $translated_filter = array();
         foreach ($params as $v => $a):
-            if (array_key_exists('k'.$v, $fields)) {
-                $translated_filter[] = [$client_filter_alias['c'.$v],$fields['k' . $v]['field_name'], $a];
+            if (array_key_exists('k' . $v, $fields) && array_key_exists('c' . $v, $client_filter_alias)) {
+                $translated_filter[] = [$client_filter_alias['c' . $v], $fields['k' . $v]['field_name'], $a];
             }
         endforeach;
 

@@ -19,7 +19,9 @@ $this->params['breadcrumbs'][] = $this->title;
     <div class="btn-group-report btn-group">
         <button class="btn btn-default"><span class="glyphicon glyphicon-wrench"></span> Customize</button>
         <button class="btn btn-default"><span class="glyphicon glyphicon-trash"></span> Delete</button>
-        <button class="btn btn-default" data-toggle="modal" data-target="#filter_modal"><span class="glyphicon glyphicon-filter"></span> Filter</button>
+        <button class="btn btn-default" data-toggle="modal" data-target="#filter_modal"><span
+                    class="glyphicon glyphicon-filter"></span> Filter
+        </button>
     </div>
     <div class="btn-group-report btn-group right">
         <button class="btn btn-default"><span class="glyphicon glyphicon-duplicate"></span> Clone Report</button>
@@ -41,7 +43,7 @@ $this->params['breadcrumbs'][] = $this->title;
     {summary}',
         'resizableColumns' => false,
         'panelFooterTemplate' => false,
-        'pjax' => true, // pjax is set to always true for this demo
+        'pjax' => false, // pjax is set to always true for this demo
         // set your toolbar
         'toolbar' => false,
         // set export properties
@@ -75,11 +77,24 @@ $this->params['breadcrumbs'][] = $this->title;
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
                 <h4 class="modal-title" id="myModalLabel">Filter Records</h4>
             </div>
             <div class="modal-body">
-
+                <?php foreach ($clientFilter as $filter): ?>
+                    <div class="row filter-form">
+                        <div class="col-md-5">
+                            <label class="label-name" for="filter-<?php echo $filter['id'] ?>"><?php echo $filter['label'] ?></label>
+                        </div>
+                        <div class="col-md-1">
+                            <span class="label-op"><?php echo $filter['op'] ?></span>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" value="" id="filter-<?php echo $filter['id'] ?>" name="filter[<?php echo $filter['id'] ?>]">
+                        </div>
+                    </div>
+                <?php endforeach; ?>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
