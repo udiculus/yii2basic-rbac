@@ -166,6 +166,9 @@ span.filter-label {
 
 .input-error {
   color: red; }
+  .input-error.mt-5 {
+    margin-top: 5px;
+    display: inline-block; }
 
 .panel-grey {
   border-color: #dedede;
@@ -196,5 +199,19 @@ span.filter-label {
   display: inline-block;
   text-align: left;
   vertical-align: middle; }
+
+.label-name {
+  text-align: right;
+  display: block;
+  line-height: 34px; }
+
+.label-top {
+  margin-bottom: 10px; }
+
+.filter-form .label-op {
+  text-align: center;
+  display: block;
+  line-height: 34px;
+  font-weight: bold; }
 
 /*# sourceMappingURL=site.css.map */

@@ -1,5 +1,6 @@
 <?php
 
+use yii\bootstrap\Alert;
 use yii\helpers\Html;
 use kartik\grid\GridView;
 

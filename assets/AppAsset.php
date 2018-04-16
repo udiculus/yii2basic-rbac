@@ -24,7 +24,8 @@ class AppAsset extends AssetBundle
     ];
     public $js = [
         'js/html5sortable.min.js',
-        'js/tmpl.min.js'
+        'js/tmpl.min.js',
+        'js/jquery.query-object.js'
     ];
     public $depends = [
         'yii\web\YiiAsset',

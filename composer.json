@@ -24,7 +24,7 @@
         "schmunk42/yii2-giiant": "@stable",
         "mootensai/yii2-relation-trait": "*",
         "kartik-v/yii2-sortable-input": "*",
-        "rmrevin/yii2-fontawesome": "~3.0"
+        "rmrevin/yii2-fontawesome": "~3.0",
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.0.0",

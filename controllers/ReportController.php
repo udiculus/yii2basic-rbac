@@ -10,6 +10,7 @@ namespace app\controllers;
 
 use app\models\JSONResponse;
 use app\models\Shipment;
+use PHPUnit\Util\Log\JSON;
 use Yii;
 use app\models\FieldAlias;
 use app\models\form\ReportWizardForm;
@@ -76,111 +77,6 @@ class ReportController extends Controller
         ]);
     }
 
-    public function translateClientFilter($client_filter, $fields)
-    {
-        $client_filter_arr = json_decode($client_filter);
-        $translated_filter = array();
-        foreach ($client_filter_arr as $rows) :
-            $translated_filter[] = array(
-                'id' => $rows->id,
-                'label' => $fields['k' . $rows->id]['label_name'],
-                'name' => $fields['k' . $rows->id]['field_name'],
-                'op' => $rows->op
-            );
-        endforeach;
-
-        return $translated_filter;
-    }
-
-    public function translateAppliedClientFilter($client_filter, $params, $fields)
-    {
-        $client_filter_alias = array();
-        $client_filter_arr = json_decode($client_filter);
-        foreach ($client_filter_arr as $rows) :
-            $client_filter_alias['c' . $rows->id] = $rows->op;
-        endforeach;
-
-        $translated_filter = array();
-        foreach ($params as $v => $a):
-            if (array_key_exists('k' . $v, $fields) && array_key_exists('c' . $v, $client_filter_alias)) {
-                $translated_filter[] = [$client_filter_alias['c' . $v], $fields['k' . $v]['field_name'], $a];
-            }
-        endforeach;
-
-        return $translated_filter;
-    }
-
-    public function translateSelect($selected, $fields)
-    {
-        $selected_arr = json_decode($selected);
-        $translated_column = array();
-        foreach ($selected_arr as $id):
-            $translated_column[] = $fields['k' . $id]['field_name'];
-        endforeach;
-
-        return $translated_column;
-    }
-
-    public function translateFilter($filtered, $fields)
-    {
-        $filtered_arr = json_decode($filtered);
-        $translated_filter = array();
-        foreach ($filtered_arr as $filter_temp):
-            $translated_filter[] = $this->translateWhere($fields['k' . $filter_temp->id]['field_name'], $filter_temp->op, $filter_temp->value);
-        endforeach;
-
-        return $translated_filter;
-    }
-
-    public function translateOrder($ordered, $fields)
-    {
-        $ordered_arr = json_decode($ordered);
-        $translated_order = array();
-        foreach ($ordered_arr as $order_temp):
-            $translated_order[$fields['k' . $order_temp->id]['field_name']] = ($order_temp->type == "desc" ? SORT_DESC : SORT_ASC);
-        endforeach;
-
-        return $translated_order;
-    }
-
-    public function translateWhere($field, $op, $value)
-    {
-        switch ($op) {
-            case "eq":
-                return ['=', $field, $value];
-                break;
-            case "nq":
-                return ['!=', $field, $value];
-                break;
-            case "lt":
-                return ['<', $field, $value];
-                break;
-            case "gt":
-                return ['>', $field, $value];
-                break;
-            case "le":
-                return ['<=', $field, $value];
-                break;
-            case "ge":
-                return ['>=', $field, $value];
-                break;
-            case "sw":
-                return ['LIKE', $field, $value . "%"];
-                break;
-            case "ns":
-                return ['LIKE', $field, "%" . $value];
-                break;
-            case "in":
-                return ['IN', $field, $value];
-                break;
-            case "ex":
-                return ['NOT IN', $field, $value];
-                break;
-            default:
-                return ['=', $field, $value];
-        }
-    }
-
     public function actionNew()
     {
         $customer = FieldAlias::find()
@@ -243,6 +139,211 @@ class ReportController extends Controller
             Yii::$app->response->format = Response::FORMAT_JSON;
             return $response;
         }
+    }
+
+    public function actionRemove()
+    {
+        $response = new JSONResponse();
+        // validate any AJAX requests fired off by the form
+        if (Yii::$app->request->isAjax) {
+            $report_id = Yii::$app->request->post('id');
+            if ($report_id) {
+                $model = $this->findModel($report_id);
+                $response->message = "Report '" . $model->report_name . "' has been deleted";
+                $model->delete();
+                Yii::$app->session->setFlash('success', $response->message);
+            } else {
+                $response->errorcode = 1;
+                $response->message = "Report ID cannot be null";
+            }
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return $response;
+        }
+    }
+
+    public function actionClone()
+    {
+        $response = new JSONResponse();
+        // validate any AJAX requests fired off by the form
+        if (Yii::$app->request->isAjax) {
+            $report_id = Yii::$app->request->post('id');
+            $report_name = Yii::$app->request->post('name');
+            if ($report_id) {
+                $model = $this->findModel($report_id);
+                $response->message = "Report '" . $model->report_name . "' has been cloned";
+                $newRecords = new ReportTemplate;
+                $newRecords->attributes = $model->attributes;
+                $newRecords->report_name = $report_name;
+                $newRecords->isNewRecord = true;
+                $newRecords->save(false);
+                Yii::$app->session->setFlash('success', $response->message);
+            } else {
+                $response->errorcode = 1;
+                $response->message = "Report ID cannot be null";
+            }
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return $response;
+        }
+    }
+
+    public function actionExport($id)
+    {
+        $report = ReportTemplate::findOne($id);
+
+        $field_alias = array();
+        $field_alias_res = FieldAlias::find()->asArray()->all();
+        foreach ($field_alias_res as $rows):
+            $field_alias['k' . $rows['id']] = $rows;
+        endforeach;
+
+        $selectedField = $this->translateSelect($report->field_order, $field_alias);
+        $filteredField = $this->translateFilter($report->filter, $field_alias);
+        $orderedField = $this->translateOrder($report->sorting_order, $field_alias);
+        $clientFilter = $this->translateClientFilter($report->client_filter, $field_alias);
+
+        $query = Shipment::find()
+            ->innerJoinWith('customer')
+            ->orderBy($orderedField);
+
+        foreach ($filteredField as $ff_temp):
+            $query->andWhere($ff_temp);
+        endforeach;
+
+
+    }
+
+    private function translateClientFilter($client_filter, $fields)
+    {
+        $client_filter_arr = json_decode($client_filter);
+        $translated_filter = array();
+
+        if (!is_array($client_filter_arr))
+            return $translated_filter;
+
+        foreach ($client_filter_arr as $rows) :
+            $translated_filter[] = array(
+                'id' => $rows->id,
+                'label' => $fields['k' . $rows->id]['label_name'],
+                'name' => $fields['k' . $rows->id]['field_name'],
+                'op' => $rows->op
+            );
+        endforeach;
+
+        return $translated_filter;
+    }
+
+    private function translateAppliedClientFilter($client_filter, $params, $fields)
+    {
+        $client_filter_arr = json_decode($client_filter);
+        $client_filter_alias = array();
+        $translated_filter = array();
+
+        if (!is_array($client_filter_arr))
+            return $translated_filter;
+
+        foreach ($client_filter_arr as $rows) :
+            $client_filter_alias['c' . $rows->id] = $rows->op;
+        endforeach;
+
+        foreach ($params as $v => $a):
+            if (array_key_exists('k' . $v, $fields) && array_key_exists('c' . $v, $client_filter_alias)) {
+                $translated_filter[] = [$client_filter_alias['c' . $v], $fields['k' . $v]['field_name'], $a];
+            }
+        endforeach;
+
+        return $translated_filter;
+    }
+
+    private function translateSelect($selected, $fields)
+    {
+        $selected_arr = json_decode($selected);
+        $translated_column = array();
+
+        if (!is_array($selected_arr))
+            return $translated_column;
+
+        foreach ($selected_arr as $id):
+            $translated_column[] = $fields['k' . $id]['field_name'];
+        endforeach;
+
+        return $translated_column;
+    }
+
+    private function translateFilter($filtered, $fields)
+    {
+        $filtered_arr = json_decode($filtered);
+        $translated_filter = array();
+
+        if (!is_array($filtered_arr))
+            return $translated_filter;
+
+        foreach ($filtered_arr as $filter_temp):
+            $translated_filter[] = $this->translateWhere($fields['k' . $filter_temp->id]['field_name'], $filter_temp->op, $filter_temp->value);
+        endforeach;
+
+        return $translated_filter;
+    }
+
+    private function translateOrder($ordered, $fields)
+    {
+        $ordered_arr = json_decode($ordered);
+        $translated_order = array();
+
+        if (!is_array($ordered_arr))
+            return $translated_order;
+
+        foreach ($ordered_arr as $order_temp):
+            $translated_order[$fields['k' . $order_temp->id]['field_name']] = ($order_temp->type == "desc" ? SORT_DESC : SORT_ASC);
+        endforeach;
+
+        return $translated_order;
+    }
+
+    private function translateWhere($field, $op, $value)
+    {
+        switch ($op) {
+            case "eq":
+                return ['=', $field, $value];
+                break;
+            case "nq":
+                return ['!=', $field, $value];
+                break;
+            case "lt":
+                return ['<', $field, $value];
+                break;
+            case "gt":
+                return ['>', $field, $value];
+                break;
+            case "le":
+                return ['<=', $field, $value];
+                break;
+            case "ge":
+                return ['>=', $field, $value];
+                break;
+            case "sw":
+                return ['LIKE', $field, $value . "%"];
+                break;
+            case "ns":
+                return ['LIKE', $field, "%" . $value];
+                break;
+            case "in":
+                return ['IN', $field, $value];
+                break;
+            case "ex":
+                return ['NOT IN', $field, $value];
+                break;
+            default:
+                return ['=', $field, $value];
+        }
+    }
+
+    protected function findModel($id)
+    {
+        if (($model = ReportTemplate::findOne($id)) !== null) {
+            return $model;
+        }
+
+        throw new NotFoundHttpException('The requested page does not exist.');
     }
 
 }
