@@ -25,6 +25,8 @@
         "mootensai/yii2-relation-trait": "*",
         "kartik-v/yii2-sortable-input": "*",
         "rmrevin/yii2-fontawesome": "~3.0",
+        "phpnt/yii2-export": "dev-master",
+        "2amigos/yii2-file-upload-widget": "~1.0"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.0.0",

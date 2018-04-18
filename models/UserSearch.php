@@ -23,6 +23,16 @@ class UserSearch extends User
         ];
     }
 
+    public function exportFields() {
+        return [
+            'id' => function ($model) {
+                return $model->id;
+            },
+            'username',
+            'email'
+        ];
+    }
+
     /**
      * {@inheritdoc}
      */

@@ -8,6 +8,8 @@
 
 namespace app\controllers;
 
+use app\models\Article;
+use app\models\form\UploadForm;
 use app\models\JSONResponse;
 use app\models\Shipment;
 use PHPUnit\Util\Log\JSON;
@@ -19,6 +21,7 @@ use app\models\search\ReportTemplateSearch;
 use yii\data\ActiveDataProvider;
 use yii\web\Controller;
 use yii\web\Response;
+use yii\web\UploadedFile;
 
 class ReportController extends Controller
 {
@@ -196,7 +199,12 @@ class ReportController extends Controller
             $field_alias['k' . $rows['id']] = $rows;
         endforeach;
 
+        $objPHPExcel = new \PHPExcel();
+        $objPHPExcel->setActiveSheetIndex(0);
+        $objPHPExcel->getActiveSheet()->setTitle($report->report_name);
+
         $selectedField = $this->translateSelect($report->field_order, $field_alias);
+        $selectedLabel = $this->translateLabel($report->field_order, $field_alias);
         $filteredField = $this->translateFilter($report->filter, $field_alias);
         $orderedField = $this->translateOrder($report->sorting_order, $field_alias);
         $clientFilter = $this->translateClientFilter($report->client_filter, $field_alias);
@@ -209,7 +217,62 @@ class ReportController extends Controller
             $query->andWhere($ff_temp);
         endforeach;
 
+        $letter = 65;
+        foreach ($selectedLabel as $labels) {
+            $objPHPExcel->getActiveSheet()->setCellValue(chr($letter) . '1', $labels);
+            $objPHPExcel->getActiveSheet()->getStyle(chr($letter) . '1')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+            $letter++;
+        }
 
+        $row = 2;
+        $letter = 65;
+        foreach ($query->asArray()->all() as $rows):
+            foreach ($selectedField as $fields) {
+                $objPHPExcel->getActiveSheet()->setCellValue(chr($letter) . $row, $this->readCell($rows, $fields));
+                $objPHPExcel->getActiveSheet()->getStyle(chr($letter) . $row)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
+                $letter++;
+            }
+            $letter = 65;
+            $row++;
+        endforeach;
+
+        header('Content-Type: application/vnd.ms-excel');
+        $filename = $report->report_name . ".xls";
+        header('Content-Disposition: attachment;filename=' . $filename);
+        header('Cache-Control: max-age=0');
+        $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+        $objWriter->save('php://output');
+        exit();
+    }
+
+    public function readCell($cell, $field)
+    {
+        if (strpos($field, '.')) {
+            $explodedField = explode('.', $field);
+            return $cell[$explodedField[0]][$explodedField[1]];
+        } else {
+            return $cell[$field];
+        }
+    }
+
+    public function actionUpload()
+    {
+        $response = new JSONResponse();
+        // validate any AJAX requests fired off by the form
+        if (Yii::$app->request->isAjax) {
+            $model = new UploadForm();
+
+            $model->imageFile = UploadedFile::getInstance($model, 'imageFile');
+            if ($model->uploadAsTemp()) {
+                $response->data = $model->newName;
+                $response->message = "Successfully uploaded the file";
+            } else {
+                $response->errorcode = 1000;
+                $response->form_error = $model->errors;
+            }
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return $response;
+        }
     }
 
     private function translateClientFilter($client_filter, $fields)
@@ -264,6 +327,21 @@ class ReportController extends Controller
 
         foreach ($selected_arr as $id):
             $translated_column[] = $fields['k' . $id]['field_name'];
+        endforeach;
+
+        return $translated_column;
+    }
+
+    private function translateLabel($selected, $fields)
+    {
+        $selected_arr = json_decode($selected);
+        $translated_column = array();
+
+        if (!is_array($selected_arr))
+            return $translated_column;
+
+        foreach ($selected_arr as $id):
+            $translated_column[] = $fields['k' . $id]['label_name'];
         endforeach;
 
         return $translated_column;

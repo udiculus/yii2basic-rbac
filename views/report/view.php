@@ -1,6 +1,5 @@
 <?php
 
-use yii\bootstrap\Button;
 use yii\helpers\Html;
 use kartik\grid\GridView;
 use yii\web\View;
@@ -33,6 +32,9 @@ $this->params['breadcrumbs'][] = $this->title;
             <button class="btn btn-default"><span class="glyphicon glyphicon-calendar"></span> Scheduler</button>
             <button class="btn btn-default" data-toggle="modal" data-target="#export_modal"><span
                         class="glyphicon glyphicon-export"></span> Export
+            </button>
+            <button class="btn btn-default" data-toggle="modal" data-target="#import_modal"><span
+                        class="glyphicon glyphicon-import"></span> Import
             </button>
         </div>
         <?php echo GridView::widget([
@@ -218,6 +220,71 @@ $this->params['breadcrumbs'][] = $this->title;
             </div>
         </div>
     </div>
+    <!-- Modal Import -->
+    <div class="modal fade" id="import_modal" tabindex="-1" role="dialog" aria-labelledby="importModal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form id="import_form">
+                    <input type="hidden" name="report_template_id" value="<?php echo $report->id ?>"/>
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                    aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 class="modal-title" id="deleteModal">Import Report</h4>
+                    </div>
+                    <div class="modal-body">
+                        <input id="tmp" name="tmp" type="hidden"/>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="col l12 s12 m12 no-padding content-form"
+                                     style="margin-left: -10px; margin-top: 10px">
+                                    <div class="upload-file">
+                                        <div class="upload-button">
+                                            <button onclick="upload_file();" type="button" class="btn btn-default">Upload
+                                                File
+                                            </button>
+                                            <div style="font-size: 12px;margin-top: 5px;">*Max File Size: 2MB</div>
+                                        </div>
+                                        <div class="upload-loading hide">
+                                            <div class="loading-message">Uploading...</div>
+                                            <div class="progress">
+                                                <div class="determinate" style="width: 0%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Import Now</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="upload-user-file hide">
+        <form method="POST" action="" id="upload_user_file" enctype="multipart/form-data">
+            <input style="display:none;" type="file" name="UploadForm[imageFile]" multiple="" id="attach-file">
+        </form>
+    </div>
+    <script id="template-upload" type="text/x-tmpl">
+    </script>
+    <script id="template-download" type="text/x-tmpl">
+    </script>
+<?php
+$this->registerJsFile('@web/js/blueimp/load-image.all.min.js', ['depends' => [\yii\web\JqueryAsset::className()]]);
+$this->registerJsFile('@web/js/blueimp/vendor/jquery.ui.widget.js', ['depends' => [\yii\web\JqueryAsset::className()]]);
+$this->registerJsFile('@web/js/blueimp/jquery.iframe-transport.js', ['depends' => [\yii\web\JqueryAsset::className()]]);
+$this->registerJsFile('@web/js/blueimp/jquery.fileupload.js', ['depends' => [\yii\web\JqueryAsset::className()]]);
+$this->registerJsFile('@web/js/blueimp/jquery.fileupload-process.js', ['depends' => [\yii\web\JqueryAsset::className()]]);
+$this->registerJsFile('@web/js/blueimp/jquery.fileupload-image.js', ['depends' => [\yii\web\JqueryAsset::className()]]);
+$this->registerJsFile('@web/js/blueimp/jquery.fileupload-audio.js', ['depends' => [\yii\web\JqueryAsset::className()]]);
+$this->registerJsFile('@web/js/blueimp/jquery.fileupload-video.js', ['depends' => [\yii\web\JqueryAsset::className()]]);
+$this->registerJsFile('@web/js/blueimp/jquery.fileupload-validate.js', ['depends' => [\yii\web\JqueryAsset::className()]]);
+$this->registerJsFile('@web/js/blueimp/jquery.fileupload-ui.js', ['depends' => [\yii\web\JqueryAsset::className()]]);
+?>
 <?php
 $script = <<< JS
 $(document).ready(function () {
@@ -277,7 +344,84 @@ $(document).ready(function () {
         window.open('/report/export/' + id);
         $("#export_modal").modal('hide');
     });
+    
+    $(window).on('dragenter', function(){
+        $(this).preventDefault();
+    });
+	$('.upload-file').bind('dragover', function(){
+	    $(this).addClass('hover');
+	});
+	$('.upload-file').bind('dragleave', function(){
+	    $(this).removeClass('hover');
+	});
+	 // Initialize the jQuery File Upload widget:
+    $('#upload_user_file').fileupload({
+        // Uncomment the following to send cross-domain cookies:
+        //xhrFields: {withCredentials: true},
+		// dropZone: $('.upload-file'),
+        url: '/report/upload',
+        maxFileSize: 2000000 //2MB,
+    });
+
+    // Enable iframe cross-domain access via redirect option:
+    $('#upload_user_file').fileupload(
+        'option',
+        'redirect',
+        window.location.href.replace(
+            /\/[^\/]*$/,
+            '/cors/result.html?%s'
+        )
+    )
+    .bind('fileuploadadd', function(e, data){
+        data.submit();
+        $(".upload-button").addClass('hide');
+		$(".upload-loading").removeClass('hide');
+		$("#import_form").find('button[type=submit]').addClass('disabled').attr('disabled','disabled');
+    })
+	.bind('fileuploadprogressall', function (e, data) {
+		var progress = parseInt(data.loaded / data.total * 100, 10);
+		$('.progress .determinate').css(
+				'width',
+				progress + '%'
+		);
+    })
+    .bind('fileuploaddone', function (e, data) {
+		setTimeout(function(){
+			$(".progress .determinate").css("width", "0%");
+			$(".upload-loading").addClass('hide');
+			$(".upload-button").removeClass('hide');
+			$("#import_form").find('button[type=submit]').removeClass('disabled').removeAttr('disabled');
+
+		}, 500);
+        if(data.result.errorcode > 0){
+            // $("#scan_ktp_notification").html(data.result.msg).removeClass('hide');
+        } else {
+            // $('.uploaded-thumbnail').css("background-image", "url(" + data.result.data.url + ")");
+            // $('#uploaded_photo_val').val(data.result.data.name);
+            $('#tmp').val(data.result.data.path);
+
+            console.log(data.result.data.path);
+        }
+    });
+
+    // Load existing files:
+    $('#upload_user_file').addClass('fileupload-processing');
+    $.ajax({
+        // Uncomment the following to send cross-domain cookies:
+        //xhrFields: {withCredentials: true},
+        url: $('#upload_user_file').fileupload('option', 'url'),
+        dataType: 'json',
+        context: $('#upload_user_file')[0]
+    }).always(function () {
+        $(this).removeClass('fileupload-processing');
+    }).done(function (result) {
+        $(this).fileupload('option', 'done')
+            .call(this, null, {result: result});
+    });
 });
+function upload_file(){
+    document.getElementById("attach-file").click();
+}
 JS;
 $this->registerJs($script, View::POS_END);
 ?>

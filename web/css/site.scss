@@ -271,4 +271,20 @@ span.filter-label {
   }
 }
 
+.upload-file {
+  text-align: center;
+}
+
+.progress {
+  height: 6px;
+  margin-top: 16px;
+  margin-bottom: 0;
+  margin-left: 20%;
+  margin-right: 20%;
+  .determinate{
+    height: 6px;
+    background: #337ab7;
+  }
+}
+
 
